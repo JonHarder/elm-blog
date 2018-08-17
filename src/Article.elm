@@ -1,5 +1,6 @@
 module Article exposing (Article, fetch, header, view)
 
+import Api as Api
 import Html exposing (Html, div, h2, hr, li, p, text, ul)
 import Http
 import Json.Decode as Decode exposing (Decoder)
@@ -58,11 +59,11 @@ decode =
 fetch : Id -> (Result Http.Error Article -> msg) -> Cmd msg
 fetch id toMsg =
     let
-        url =
-            "http://localhost:3000/articles/" ++ String.fromInt id
+        articleUrl =
+            Api.url ++ "/articles/" ++ String.fromInt id
 
         req =
-            Http.get url decode
+            Http.get articleUrl decode
     in
     Http.send toMsg req
 

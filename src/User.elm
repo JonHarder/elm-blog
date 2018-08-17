@@ -1,5 +1,6 @@
 module User exposing (User, fetch, toString)
 
+import Api as Api
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -29,11 +30,11 @@ toString (User id fn ln) =
 fetch : Id -> (Result Http.Error User -> msg) -> Cmd msg
 fetch id toMsg =
     let
-        url =
-            "http://localhost:3000/users/" ++ String.fromInt id
+        userUrl =
+            Api.url ++ "/users/" ++ String.fromInt id
 
         req =
-            Http.get url decode
+            Http.get userUrl decode
     in
     Http.send toMsg req
 
