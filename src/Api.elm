@@ -2,4 +2,4 @@ module Api exposing (..)
 
 
 url =
-    "https://blog-server-attdptizqx.now.sh"
+    "https://blog-server-ptvvnakeho.now.sh"
