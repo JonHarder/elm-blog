@@ -13,9 +13,10 @@ trickling in as the implimentation of this site settles.
 
 ## Building
 You can build this blog yourself if you want to mess around with the framework, or see what a
-small/medium scale Elm app looks like.  For now my blog posts will be hard coded into the application
+small/medium scale Elm app looks like.  ~For now my blog posts will be hard coded into the application
 itself, but I hope to store them in static files or a database once the design of the site nears
-completion.
+completion.~  Articles are stored as markdown (plus some metadata) and are loaded from the server 
+on demand using `/articles/08-17-2018/static_files` as an example query.
 
 There is a `Makefile` included which handles the building, optimizing, and various other tasks
 associated with the life-cycle of this site
