@@ -57,3 +57,11 @@ make deploy
 
 This will remove any current dist folder to get a fresh start, build the elm and copy any assets over,
 followed by a deployment to [now](https://zeit.co/now)
+
+## TODO
+
+* ~Parse artices from REST backend~
+* ~Store articles as markdown on server~
+* Proper SPA support using `Browser.application`
+* Article Editor/publisher
+* Article Search
