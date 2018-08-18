@@ -1,7 +1,9 @@
 module Main exposing (main)
 
+import Url exposing (Url)
 import Article as Article exposing (Article, Date(..), Slug(..))
-import Browser
+import Browser exposing (Document)
+import Browser.Navigation as Navigation
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Http as Http
@@ -12,6 +14,8 @@ import User as User exposing (User)
 type Msg
     = GotUser (Result Http.Error User)
     | GotArticle (Result Http.Error Article)
+    | UrlChanged Url
+    | UrlRequested Browser.UrlRequest
 
 
 type Viewer
@@ -20,14 +24,16 @@ type Viewer
 
 
 type alias Model =
-    { viewer : Viewer
+    { url : Url
+    , viewer : Viewer
     , articles : List Article
     }
 
 
-initModel : Model
-initModel =
-    { viewer = LoggedOut
+initModel : Url -> Model
+initModel url =
+    { url = url
+    , viewer = LoggedOut
     , articles = []
     }
 
@@ -40,9 +46,9 @@ initCommands =
         ]
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initModel, initCommands )
+init : Value -> Url -> Navigation.Key -> ( Model, Cmd Msg )
+init flags url key =
+    ( initModel url, initCommands )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,6 +66,12 @@ update msg model =
         GotArticle (Err _) ->
             ( model, Cmd.none )
 
+        UrlChanged url ->
+            ( model, Cmd.none )
+
+        UrlRequested req ->
+            ( model, Cmd.none )
+
 
 viewViewer : Viewer -> Html msg
 viewViewer viewer =
@@ -71,13 +83,19 @@ viewViewer viewer =
             text <| "Welcome back, " ++ User.toString user
 
 
+view : Model -> Document Msg
 view model =
-    div []
-        [ div [ class "header" ] [ viewViewer model.viewer ]
-        , div [ class "container" ] <|
-            List.reverse <|
-                List.map Article.view model.articles
+    { title = "Elm Blog"
+    , body =
+        [ div []
+            [ div [ class "header" ] [ viewViewer model.viewer ]
+            , text <| Url.toString model.url
+            , div [ class "container" ] <|
+                List.reverse <|
+                    List.map Article.view model.articles
+            ]
         ]
+    }
 
 
 subscriptions : Model -> Sub Msg
@@ -87,9 +105,11 @@ subscriptions model =
 
 main : Program Value Model Msg
 main =
-    Browser.element
-        { init = \_ -> init
+    Browser.application
+        { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
+        , onUrlChange = UrlChanged
+        , onUrlRequest = UrlRequested
         }
