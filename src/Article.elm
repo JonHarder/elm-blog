@@ -1,10 +1,12 @@
-module Article exposing (Article, fetch, header, view)
+module Article exposing (Article, Date(..), Slug(..), fetch, header, view)
 
 import Api as Api
-import Html exposing (Html, div, h2, hr, li, p, text, ul)
+import Html exposing (Html, div, h2, hr, li, p, span, text, ul)
+import Html.Attributes exposing (class)
 import Http
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode.Pipeline exposing (hardcoded, required)
+import Markdown as Markdown
 
 
 type alias Id =
@@ -24,10 +26,10 @@ type Article
 
 
 type alias Internals =
-    { userId : Id
-    , header : Header
+    { header : Header
     , tags : List Tag
     , body : String
+    , date : String
     }
 
 
@@ -40,51 +42,60 @@ header (Article internals) =
     h
 
 
-decodeTag : Decoder Tag
-decodeTag =
-    Decode.succeed Tag
-        |> required "tagName" Decode.string
-
-
-decode : Decoder Article
-decode =
+decode : String -> Decoder Article
+decode date =
     Decode.succeed Internals
-        |> required "userId" Decode.int
         |> required "header" (Decode.map Header Decode.string)
-        |> required "tags" (Decode.list decodeTag)
+        |> required "tags" (Decode.list (Decode.map Tag Decode.string))
         |> required "body" Decode.string
+        |> hardcoded date
         |> Decode.map Article
 
 
-fetch : Id -> (Result Http.Error Article -> msg) -> Cmd msg
-fetch id toMsg =
+type Date
+    = Date String
+
+
+type Slug
+    = Slug String
+
+
+fetch : Date -> Slug -> (Result Http.Error Article -> msg) -> Cmd msg
+fetch (Date dateStr) (Slug slug) toMsg =
     let
         articleUrl =
-            Api.url ++ "/articles/" ++ String.fromInt id
+            Api.url ++ "/articles/" ++ dateStr ++ "/" ++ slug
 
         req =
-            Http.get articleUrl decode
+            Http.get articleUrl (decode dateStr)
     in
     Http.send toMsg req
 
 
 viewTag : Tag -> Html msg
 viewTag (Tag tagName) =
-    li [] [ text tagName ]
+    span [ class "tag" ]
+        [ text tagName
+        , text " "
+        ]
 
 
-viewHeader : Header -> Html msg
-viewHeader (Header h) =
-    h2 [] [ text h ]
+viewHeader : Header -> String -> List Tag -> Html msg
+viewHeader (Header h) date tags =
+    div []
+        [ h2 [] [ text h ]
+        , div []
+            [ p [] [ text date ]
+            , div [] <|
+                List.map viewTag tags
+            ]
+        ]
 
 
 view : Article -> Html msg
 view (Article internals) =
-    div []
-        [ viewHeader internals.header
+    div [ class "article" ]
+        [ viewHeader internals.header internals.date internals.tags
         , hr [] []
-        , div [] [ text "the tags" ]
-        , ul [] (List.map viewTag internals.tags)
-        , hr [] []
-        , p [] [ text internals.body ]
+        , Markdown.toHtml [] internals.body
         ]

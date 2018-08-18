@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Article as Article exposing (Article)
+import Article as Article exposing (Article, Date(..), Slug(..))
 import Browser
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
@@ -35,7 +35,8 @@ initModel =
 initCommands =
     Cmd.batch
         [ User.fetch 1 GotUser
-        , Article.fetch 1 GotArticle
+        , Article.fetch (Date "08-16-2018") (Slug "first_post") GotArticle
+        , Article.fetch (Date "08-17-2018") (Slug "static_files") GotArticle
         ]
 
 
@@ -73,7 +74,9 @@ viewViewer viewer =
 view model =
     div []
         [ div [ class "header" ] [ viewViewer model.viewer ]
-        , div [] (List.map Article.view model.articles)
+        , div [ class "container" ] <|
+            List.reverse <|
+                List.map Article.view model.articles
         ]
 
 

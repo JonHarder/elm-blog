@@ -1,4 +1,6 @@
-let express = require('express')
+const express = require('express')
+const fs = require('fs')
+
 
 const app = express()
 app.use((req, res, next) => {
@@ -23,27 +25,8 @@ class Tag {
 }
 
 
-class Article {
-    constructor(userId, header, tags, body) {
-        this.userId = userId
-        this.header = header
-        this.tags = tags
-        this.body = body
-    }
-}
-
-
 let users = new Map()
 users.set(1, new User(1, "Jon", "Harder"))
-
-let articles = new Map()
-articles.set(1, new Article(1, "First Post!", [new Tag("elm"), new Tag("blog")], `My first post!
-Well, here it is. It may look like hot garbage, but there's a lot going on under the scenes here.
-There's an express app running which response to requests to users and articles. And an elm application
-which asynchronosly requests a user, the first article, decodes the json, and displays a formatted post,
-this post to be exact.
-
-I'm tired so thats all for this inagural post.`))
 
 
 app.get('/', (req, res) => {
@@ -70,20 +53,29 @@ app.get('/users/:userId', (req, res) => {
         }
     }
 })
-app.get('/articles/:articleId', (req, res) => {
-    const { articleId } = req.params
-    parsedArticleId = parseInt(articleId)
-    let article = null;
-    if(Number.isNaN(parsedArticleId)) {
-        res.status(400).send(`${articleId} is not an integer`)
-    } else {
-        article = articles.get(parsedArticleId)
-        if(article === undefined) {
-            res.status(404).send('article not found')
-        } else {
-            res.json(article)
-        }
+
+const ArticesDir = "./static/artices"
+
+const formatStaticArticle = (contents) => {
+    const lines = contents.split("\n")
+    return {
+        header: lines[0],
+        tags: lines[1].split(",").map(s => s.trim()),
+        body: lines.slice(2).join("\n")
     }
+}
+
+const findArticle = (dateStr, slug) => {
+    const dateDir = dateStr.replace(/-/g, '')
+    const file = `./static/articles/${dateDir}/${slug}.md`
+    return file
+}
+
+app.get("/articles/:date/:slug", (req, res) => {
+    const { date, slug } = req.params
+    const file = findArticle(date, slug)
+    const contents = fs.readFileSync(file, "utf8")
+    res.send(formatStaticArticle(contents))
 })
 
 app.listen(3000, () => console.log('Blog backend started on port 3000!'))
