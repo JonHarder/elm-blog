@@ -62,6 +62,7 @@ followed by a deployment to [now](https://zeit.co/now)
 
 * ~Parse artices from REST backend~
 * ~Store articles as markdown on server~
+* Use gulp for build scripts
 * Proper SPA support using `Browser.application`
 * Article Editor/publisher
 * Article Search
